@@ -1,11 +1,9 @@
 #pragma once
 
+#include "SpeckleUnrealMesh.h"
 #include "GameFramework/Actor.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
 #include "SpeckleUnrealManager.generated.h"
-
-/* Forward declarations */
-class UStaticMeshComponent;
 
 UCLASS()
 class SPECKLEUNREAL_API ASpeckleUnrealManager : public AActor
@@ -35,7 +33,7 @@ public:
 	};
 
 	UPROPERTY(EditAnywhere, Category = "Speckle")
-	TSubclassOf<AActor> MeshActor;
+	TSubclassOf<ASpeckleUnrealMesh> MeshActor;
 
 	/*Assign this function to call when the GET request processes sucessfully*/
 	void OnStreamResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);

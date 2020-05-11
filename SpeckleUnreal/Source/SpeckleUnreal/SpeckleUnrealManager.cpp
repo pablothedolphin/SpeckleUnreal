@@ -119,22 +119,60 @@ void ASpeckleUnrealManager::OnStreamObjectResponseReceived(FHttpRequestPtr Reque
 		for (size_t i = 0; i < StreamObjects.Num(); i++)
 		{
 			TSharedPtr<FJsonObject> StreamObject = StreamObjects[i].Get()->AsObject();
-			TArray<TSharedPtr<FJsonValue>> ObjectVertices = StreamObject->GetArrayField("vertices");
 
-			AActor* MeshInstance = World->SpawnActor(MeshActor);
+			FString objectType = StreamObject->GetStringField("type");
 
-			/*for (size_t i = 0; i < length; i++)
+			if (objectType.ToLower() == "mesh")
 			{
+				AActor* ActorInstance = World->SpawnActor(MeshActor);
+				ASpeckleUnrealMesh* MeshInstance = (ASpeckleUnrealMesh*)ActorInstance;
 
+				TArray<TSharedPtr<FJsonValue>> ObjectVertices = StreamObject->GetArrayField("vertices");
+				TArray<TSharedPtr<FJsonValue>> ObjectFaces = StreamObject->GetArrayField("faces");
+
+				TArray<FVector> ParsedVerticies;
+
+				for (size_t j = 0; j < ObjectVertices.Num(); j += 3)
+				{
+					ParsedVerticies.Add(FVector
+					(
+						(float)(ObjectVertices[j].Get()->AsNumber()) * -1,
+						(float)(ObjectVertices[j + 1].Get()->AsNumber()),
+						(float)(ObjectVertices[j + 2].Get()->AsNumber())
+					));
+				}
+
+				//convert mesh faces into triangle array regardless of whether or not they are quads
+				TArray<int32> ParsedTriangles;
+				int32 j = 0;
+				while (j < ObjectFaces.Num())
+				{
+					if (ObjectFaces[j].Get()->AsNumber() == 0)
+					{
+						//Triangles
+						ParsedTriangles.Add(ObjectFaces[j + 1].Get()->AsNumber());
+						ParsedTriangles.Add(ObjectFaces[j + 3].Get()->AsNumber());
+						ParsedTriangles.Add(ObjectFaces[j + 2].Get()->AsNumber());
+						j += 4;
+					}
+					else
+					{
+						//Quads to triangles
+						ParsedTriangles.Add(ObjectFaces[j + 1].Get()->AsNumber());
+						ParsedTriangles.Add(ObjectFaces[j + 3].Get()->AsNumber());
+						ParsedTriangles.Add(ObjectFaces[j + 2].Get()->AsNumber());
+
+						ParsedTriangles.Add(ObjectFaces[j + 3].Get()->AsNumber());
+						ParsedTriangles.Add(ObjectFaces[j + 1].Get()->AsNumber());
+						ParsedTriangles.Add(ObjectFaces[j + 4].Get()->AsNumber());
+
+						j += 5;
+					}
+				}
+
+				MeshInstance->SetMesh(ParsedVerticies, ParsedTriangles);
 			}
-
-			ObjectVertices[0].Get()->AsNumber();
-			int32 vertCount = ObjectVertices.Num();
-			float verticies[vertCount] = new float[];*/
 		}
-
-
-
 	}
 	else
 	{
